@@ -227,7 +227,7 @@ export const Register = () => {
                 type="button"
                 onClick={async () => {
                   try {
-                    const backendUrl = import.meta.env.VITE_MEDUSA_BACKEND_URL || 'https://gmbackend.medusajs.app';
+                    const backendUrl = (import.meta.env.VITE_MEDUSA_BACKEND_URL || 'https://gmbackend.medusajs.app').replace(/\/$/, '');
                     const apiKey = import.meta.env.VITE_PUBLISHABLE_API_KEY || 'pk_c72299351bae1998e24ec0e9fc6fe27c454752d3c03b69ccf56509e35096a070';
                     
                     console.log('Testing API connection...');
