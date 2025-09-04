@@ -35,8 +35,8 @@ export const useSignUpWithEmailPass = (
   return useMutation({
     mutationFn: async (payload) => {
       // Use environment variables with fallbacks
-      const backendUrl = __BACKEND_URL__ || 'https://gmbackend.medusajs.app';
-      const apiKey = __PUBLISHABLE_API_KEY__ || 'pk_c72299351bae1998e24ec0e9fc6fe27c454752d3c03b69ccf56509e35096a070';
+      const backendUrl = import.meta.env.VITE_MEDUSA_BACKEND_URL || 'https://gmbackend.medusajs.app';
+      const apiKey = import.meta.env.VITE_PUBLISHABLE_API_KEY || 'pk_c72299351bae1998e24ec0e9fc6fe27c454752d3c03b69ccf56509e35096a070';
       
       console.log('Signup attempt:', {
         url: `${backendUrl}/auth/seller/emailpass/register`,
