@@ -26,13 +26,20 @@ export default async function handler(req, res) {
   console.log('Proxying request to:', targetUrl);
   
   try {
+    const headers = {
+      'Content-Type': 'application/json',
+      'x-publishable-api-key': req.headers['x-publishable-api-key'] || 'pk_c72299351bae1998e24ec0e9fc6fe27c454752d3c03b69ccf56509e35096a070',
+      'Accept': 'application/json',
+    };
+    
+    // Pass through authorization header if present
+    if (req.headers.authorization) {
+      headers['Authorization'] = req.headers.authorization;
+    }
+    
     const response = await fetch(targetUrl, {
       method: req.method,
-      headers: {
-        'Content-Type': 'application/json',
-        'x-publishable-api-key': req.headers['x-publishable-api-key'] || 'pk_c72299351bae1998e24ec0e9fc6fe27c454752d3c03b69ccf56509e35096a070',
-        'Accept': 'application/json',
-      },
+      headers,
       body: req.method !== 'GET' && req.method !== 'HEAD' ? JSON.stringify(req.body) : undefined,
     });
     

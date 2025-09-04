@@ -77,8 +77,16 @@ export const fetchQuery = async (
     },
     ""
   )
-  // Always use direct backend URL - production domains should allow CORS
-  const response = await fetch(`${backendUrl}${url}${params && `?${params}`}`, {
+  
+  // Use proxy in production to bypass CORS
+  const isProduction = typeof window !== 'undefined' && window.location.hostname !== 'localhost'
+  const apiUrl = isProduction 
+    ? `/api/proxy?path=${url}${params ? `&${params}` : ''}`
+    : `${backendUrl}${url}${params && `?${params}`}`
+  
+  console.log('fetchQuery:', { url, apiUrl, isProduction })
+  
+  const response = await fetch(apiUrl, {
     method: method,
     headers: {
       authorization: `Bearer ${bearer}`,
@@ -91,6 +99,7 @@ export const fetchQuery = async (
 
   if (!response.ok) {
     const errorData = await response.json()
+    console.error('fetchQuery error:', errorData)
     throw new Error(errorData.message || "Nieznany błąd serwera")
   }
 
