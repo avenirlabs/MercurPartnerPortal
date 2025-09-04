@@ -136,7 +136,15 @@ export const useSignUpWithEmailPass = (
       }
       
       const result = await response.json();
-      console.log('Signup success');
+      console.log('Signup success, response:', result);
+      
+      // Store token immediately if returned
+      if (result && (result.token || typeof result === 'string')) {
+        const token = result.token || result;
+        window.localStorage.setItem('medusa_auth_token', token);
+        console.log('Auth token stored from registration:', token.substring(0, 20) + '...');
+      }
+      
       return result;
     },
     onSuccess: async (data, variables) => {

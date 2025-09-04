@@ -329,6 +329,69 @@ export const Register = () => {
               >
                 Test Login
               </Button>
+              
+              <Button
+                className="w-full mt-2"
+                variant="secondary"
+                type="button"
+                onClick={async () => {
+                  const email = prompt('Enter email for seller creation:');
+                  const name = prompt('Enter company name:');
+                  const token = prompt('Enter auth token (optional, leave blank to skip):');
+                  
+                  if (!email || !name) return;
+                  
+                  if (token) {
+                    window.localStorage.setItem('medusa_auth_token', token);
+                  }
+                  
+                  try {
+                    const apiKey = import.meta.env.VITE_PUBLISHABLE_API_KEY || 'pk_c72299351bae1998e24ec0e9fc6fe27c454752d3c03b69ccf56509e35096a070';
+                    const isProduction = window.location.hostname !== 'localhost';
+                    const authToken = window.localStorage.getItem('medusa_auth_token') || '';
+                    
+                    const apiUrl = isProduction 
+                      ? `/api/proxy?path=/vendor/sellers`
+                      : `${import.meta.env.VITE_MEDUSA_BACKEND_URL || 'https://gmbackend.medusajs.app'}/vendor/sellers`;
+                    
+                    const seller = {
+                      name: name,
+                      member: {
+                        name: name,
+                        email: email,
+                      },
+                    };
+                    
+                    console.log('Creating seller manually:', seller);
+                    console.log('Using auth token:', authToken ? 'Yes' : 'No');
+                    
+                    const response = await fetch(apiUrl, {
+                      method: 'POST',
+                      headers: {
+                        'Content-Type': 'application/json',
+                        'x-publishable-api-key': apiKey,
+                        'Accept': 'application/json',
+                        ...(authToken ? { 'Authorization': `Bearer ${authToken}` } : {})
+                      },
+                      body: JSON.stringify(seller)
+                    });
+                    
+                    const data = await response.text();
+                    console.log('Seller creation response:', response.status, data);
+                    
+                    if (response.ok) {
+                      alert('Seller created successfully!');
+                    } else {
+                      alert('Seller creation failed: ' + data);
+                    }
+                  } catch (error) {
+                    console.error('Seller creation error:', error);
+                    alert('Error: ' + error.message);
+                  }
+                }}
+              >
+                Create Seller Manually
+              </Button>
             </form>
           </Form>
         </div>
