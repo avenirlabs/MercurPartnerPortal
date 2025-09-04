@@ -95,13 +95,25 @@ export const Register = () => {
     return (
       <div className="bg-ui-bg-subtle flex min-h-dvh w-dvw items-center justify-center">
         <div className="mb-4 flex flex-col items-center">
-          <Heading>Thank You for registering!</Heading>
+          <Heading>Registration Successful!</Heading>
           <Text
             size="small"
-            className="text-ui-fg-subtle text-center mt-2 max-w-[320px]"
+            className="text-ui-fg-subtle text-center mt-4 max-w-[400px]"
           >
-            You may need to wait for admin authorization before logging in. A
-            confirmation email will be sent to you shortly.
+            Your account has been created successfully. 
+          </Text>
+          <Alert
+            className="mt-4 max-w-[400px]"
+            variant="info"
+          >
+            <strong>Important:</strong> Your seller account requires admin approval before you can log in. 
+            You will receive an email notification once your account is activated.
+          </Alert>
+          <Text
+            size="small"
+            className="text-ui-fg-subtle text-center mt-4"
+          >
+            This usually takes 1-2 business days.
           </Text>
 
           <Link to="/login">

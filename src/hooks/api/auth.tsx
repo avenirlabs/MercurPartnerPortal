@@ -57,7 +57,17 @@ export const useSignInWithEmailPass = (
       if (!response.ok) {
         const errorData = await response.json();
         console.error('Login error:', errorData);
-        const error = FetchError ? new FetchError(errorData.message || 'Login failed', response.status, errorData) : new CustomFetchError(errorData.message || 'Login failed', response.status, errorData);
+        
+        let errorMessage = errorData.message || 'Login failed';
+        
+        // Handle specific error cases
+        if (errorMessage.includes('not active')) {
+          errorMessage = 'Your seller account is pending approval. Please wait for admin activation.';
+        } else if (errorMessage.includes('not found')) {
+          errorMessage = 'Invalid email or password.';
+        }
+        
+        const error = FetchError ? new FetchError(errorMessage, response.status, errorData) : new CustomFetchError(errorMessage, response.status, errorData);
         throw error;
       }
       
