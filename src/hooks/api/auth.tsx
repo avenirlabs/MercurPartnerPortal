@@ -148,37 +148,77 @@ export const useSignUpWithEmailPass = (
       return result;
     },
     onSuccess: async (data, variables) => {
-      console.log('Registration successful, creating seller...', { data, variables });
+      console.log('Registration successful, now logging in to create seller...', { data, variables });
       
-      const seller = {
-        name: variables.name,
-        member: {
-          name: variables.name,
-          email: variables.email,
-        },
-      }
-      
-      console.log('Seller payload:', seller);
-      
+      // First, log in to get the auth token
       try {
-        const result = await fetchQuery("/vendor/sellers", {
-          method: "POST",
-          body: seller,
-        })
-        console.log('Seller created successfully:', result);
+        const apiKey = import.meta.env.VITE_PUBLISHABLE_API_KEY || 'pk_c72299351bae1998e24ec0e9fc6fe27c454752d3c03b69ccf56509e35096a070';
+        const isProduction = window.location.hostname !== 'localhost';
+        const loginUrl = isProduction 
+          ? `/api/proxy?path=/auth/seller/emailpass`
+          : `${import.meta.env.VITE_MEDUSA_BACKEND_URL || 'https://gmbackend.medusajs.app'}/auth/seller/emailpass`;
         
-        // Store auth token if returned
-        if (data && typeof data === 'string') {
-          window.localStorage.setItem('medusa_auth_token', data);
-          console.log('Auth token stored');
+        console.log('Logging in to get auth token...');
+        const loginResponse = await fetch(loginUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-publishable-api-key': apiKey,
+            'Accept': 'application/json'
+          },
+          body: JSON.stringify({
+            email: variables.email,
+            password: variables.password
+          })
+        });
+        
+        if (loginResponse.ok) {
+          const loginData = await loginResponse.json();
+          const token = loginData.token || loginData;
+          
+          if (token) {
+            window.localStorage.setItem('medusa_auth_token', token);
+            console.log('Auth token obtained and stored');
+            
+            // Now create the seller with the auth token
+            const seller = {
+              name: variables.name,
+              member: {
+                name: variables.name,
+                email: variables.email,
+              },
+            }
+            
+            console.log('Creating seller with auth token...', seller);
+            
+            const sellerUrl = isProduction 
+              ? `/api/proxy?path=/vendor/sellers`
+              : `${import.meta.env.VITE_MEDUSA_BACKEND_URL || 'https://gmbackend.medusajs.app'}/vendor/sellers`;
+            
+            const sellerResponse = await fetch(sellerUrl, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'x-publishable-api-key': apiKey,
+                'Authorization': `Bearer ${token}`,
+                'Accept': 'application/json'
+              },
+              body: JSON.stringify(seller)
+            });
+            
+            if (sellerResponse.ok) {
+              const sellerData = await sellerResponse.json();
+              console.log('Seller created successfully:', sellerData);
+            } else {
+              const errorText = await sellerResponse.text();
+              console.error('Failed to create seller:', sellerResponse.status, errorText);
+            }
+          }
+        } else {
+          console.log('Login after registration failed - seller may not be active yet');
         }
       } catch (error) {
-        console.error('Error creating seller - Full details:', {
-          error,
-          message: error.message,
-          stack: error.stack,
-          seller
-        });
+        console.error('Error in post-registration process:', error);
         // Don't throw - let registration succeed even if seller creation fails
       }
     },
