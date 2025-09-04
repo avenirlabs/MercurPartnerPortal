@@ -34,8 +34,13 @@ export const useSignUpWithEmailPass = (
 ) => {
   return useMutation({
     mutationFn: async (payload) => {
-      // Use proxy to avoid localhost blocking
-      const response = await fetch('/api/auth/seller/emailpass/register', {
+      // Use proxy in development, direct URL in production
+      const isDev = import.meta.env.DEV;
+      const apiUrl = isDev 
+        ? '/api/auth/seller/emailpass/register' 
+        : 'https://gmbackend.medusajs.app/auth/seller/emailpass/register';
+      
+      const response = await fetch(apiUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

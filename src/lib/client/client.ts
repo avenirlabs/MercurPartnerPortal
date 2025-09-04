@@ -19,7 +19,9 @@ export const importProductsQuery = async (file: File) => {
   const formData = new FormData()
   formData.append("file", file)
 
-  return await fetch(`/api/vendor/products/import`, {
+  const isDev = import.meta.env.DEV;
+  const apiUrl = isDev ? `/api/vendor/products/import` : `${backendUrl}/vendor/products/import`;
+  return await fetch(apiUrl, {
     method: "POST",
     body: formData,
     headers: {
@@ -38,7 +40,9 @@ export const uploadFilesQuery = async (files: any[]) => {
     formData.append("files", file)
   }
 
-  return await fetch(`/api/vendor/uploads`, {
+  const isDev = import.meta.env.DEV;
+  const apiUrl = isDev ? `/api/vendor/uploads` : `${backendUrl}/vendor/uploads`;
+  return await fetch(apiUrl, {
     method: "POST",
     body: formData,
     headers: {
@@ -77,9 +81,10 @@ export const fetchQuery = async (
     },
     ""
   )
-  // Use proxy to avoid localhost blocking
-  const proxyUrl = `/api${url}`;
-  const response = await fetch(`${proxyUrl}${params && `?${params}`}`, {
+  // Use proxy in development, direct URL in production
+  const isDev = import.meta.env.DEV;
+  const apiUrl = isDev ? `/api${url}` : `${backendUrl}${url}`;
+  const response = await fetch(`${apiUrl}${params && `?${params}`}`, {
     method: method,
     headers: {
       authorization: `Bearer ${bearer}`,
