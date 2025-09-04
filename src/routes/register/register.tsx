@@ -227,14 +227,19 @@ export const Register = () => {
                 type="button"
                 onClick={async () => {
                   try {
-                    const backendUrl = (import.meta.env.VITE_MEDUSA_BACKEND_URL || 'https://gmbackend.medusajs.app').replace(/\/$/, '');
                     const apiKey = import.meta.env.VITE_PUBLISHABLE_API_KEY || 'pk_c72299351bae1998e24ec0e9fc6fe27c454752d3c03b69ccf56509e35096a070';
+                    const isProduction = window.location.hostname !== 'localhost';
+                    
+                    const apiUrl = isProduction 
+                      ? `/api/proxy?path=/store/products`
+                      : `${import.meta.env.VITE_MEDUSA_BACKEND_URL || 'https://gmbackend.medusajs.app'}/store/products`;
                     
                     console.log('Testing API connection...');
-                    console.log('Backend URL:', backendUrl);
+                    console.log('API URL:', apiUrl);
                     console.log('API Key:', apiKey.substring(0, 15) + '...');
+                    console.log('Is Production:', isProduction);
                     
-                    const response = await fetch(`${backendUrl}/store/products`, {
+                    const response = await fetch(apiUrl, {
                       method: 'GET',
                       headers: {
                         'x-publishable-api-key': apiKey,

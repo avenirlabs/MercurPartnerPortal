@@ -34,17 +34,22 @@ export const useSignUpWithEmailPass = (
 ) => {
   return useMutation({
     mutationFn: async (payload) => {
-      // Use environment variables with fallbacks - ensure no trailing slash
-      const backendUrl = (import.meta.env.VITE_MEDUSA_BACKEND_URL || 'https://gmbackend.medusajs.app').replace(/\/$/, '');
       const apiKey = import.meta.env.VITE_PUBLISHABLE_API_KEY || 'pk_c72299351bae1998e24ec0e9fc6fe27c454752d3c03b69ccf56509e35096a070';
       
+      // Use proxy in production to bypass CORS
+      const isProduction = window.location.hostname !== 'localhost';
+      const apiUrl = isProduction 
+        ? `/api/proxy?path=/auth/seller/emailpass/register`
+        : `${import.meta.env.VITE_MEDUSA_BACKEND_URL || 'https://gmbackend.medusajs.app'}/auth/seller/emailpass/register`;
+      
       console.log('Signup attempt:', {
-        url: `${backendUrl}/auth/seller/emailpass/register`,
+        url: apiUrl,
         apiKey: apiKey.substring(0, 10) + '...',
+        isProduction,
         payload: { ...payload, password: '[REDACTED]' }
       });
       
-      const response = await fetch(`${backendUrl}/auth/seller/emailpass/register`, {
+      const response = await fetch(apiUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
