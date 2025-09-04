@@ -19,9 +19,7 @@ export const importProductsQuery = async (file: File) => {
   const formData = new FormData()
   formData.append("file", file)
 
-  const isDev = import.meta.env.DEV;
-  const apiUrl = isDev ? `/api/vendor/products/import` : `${backendUrl}/vendor/products/import`;
-  return await fetch(apiUrl, {
+  return await fetch(`${backendUrl}/vendor/products/import`, {
     method: "POST",
     body: formData,
     headers: {
@@ -40,9 +38,7 @@ export const uploadFilesQuery = async (files: any[]) => {
     formData.append("files", file)
   }
 
-  const isDev = import.meta.env.DEV;
-  const apiUrl = isDev ? `/api/vendor/uploads` : `${backendUrl}/vendor/uploads`;
-  return await fetch(apiUrl, {
+  return await fetch(`${backendUrl}/vendor/uploads`, {
     method: "POST",
     body: formData,
     headers: {
@@ -81,10 +77,8 @@ export const fetchQuery = async (
     },
     ""
   )
-  // Use proxy in development, direct URL in production
-  const isDev = import.meta.env.DEV;
-  const apiUrl = isDev ? `/api${url}` : `${backendUrl}${url}`;
-  const response = await fetch(`${apiUrl}${params && `?${params}`}`, {
+  // Always use direct backend URL - production domains should allow CORS
+  const response = await fetch(`${backendUrl}${url}${params && `?${params}`}`, {
     method: method,
     headers: {
       authorization: `Bearer ${bearer}`,
