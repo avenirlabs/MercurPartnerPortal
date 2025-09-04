@@ -220,6 +220,48 @@ export const Register = () => {
               <Button className="w-full" type="submit" isLoading={isPending}>
                 Sign up
               </Button>
+              
+              <Button
+                className="w-full mt-2"
+                variant="secondary"
+                type="button"
+                onClick={async () => {
+                  try {
+                    const backendUrl = import.meta.env.VITE_MEDUSA_BACKEND_URL || 'https://gmbackend.medusajs.app';
+                    const apiKey = import.meta.env.VITE_PUBLISHABLE_API_KEY || 'pk_c72299351bae1998e24ec0e9fc6fe27c454752d3c03b69ccf56509e35096a070';
+                    
+                    console.log('Testing API connection...');
+                    console.log('Backend URL:', backendUrl);
+                    console.log('API Key:', apiKey.substring(0, 15) + '...');
+                    
+                    const response = await fetch(`${backendUrl}/store/products`, {
+                      method: 'GET',
+                      headers: {
+                        'x-publishable-api-key': apiKey,
+                        'Accept': 'application/json'
+                      }
+                    });
+                    
+                    console.log('Test Response Status:', response.status);
+                    console.log('Test Response Headers:', Object.fromEntries(response.headers.entries()));
+                    
+                    if (response.ok) {
+                      const data = await response.json();
+                      console.log('✅ API Connection Success:', data);
+                      alert('API connection successful!');
+                    } else {
+                      const errorText = await response.text();
+                      console.error('❌ API Connection Failed:', response.status, errorText);
+                      alert(`API connection failed: ${response.status} ${errorText}`);
+                    }
+                  } catch (error) {
+                    console.error('❌ Network Error:', error);
+                    alert(`Network error: ${error.message}`);
+                  }
+                }}
+              >
+                Test API Connection
+              </Button>
             </form>
           </Form>
         </div>
