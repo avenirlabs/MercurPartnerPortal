@@ -34,22 +34,37 @@ export const useSignUpWithEmailPass = (
 ) => {
   return useMutation({
     mutationFn: async (payload) => {
-      // Always use direct API calls - production domains should allow CORS
-      const response = await fetch('https://gmbackend.medusajs.app/auth/seller/emailpass/register', {
+      // Use environment variables with fallbacks
+      const backendUrl = __BACKEND_URL__ || 'https://gmbackend.medusajs.app';
+      const apiKey = __PUBLISHABLE_API_KEY__ || 'pk_c72299351bae1998e24ec0e9fc6fe27c454752d3c03b69ccf56509e35096a070';
+      
+      console.log('Signup attempt:', {
+        url: `${backendUrl}/auth/seller/emailpass/register`,
+        apiKey: apiKey.substring(0, 10) + '...',
+        payload: { ...payload, password: '[REDACTED]' }
+      });
+      
+      const response = await fetch(`${backendUrl}/auth/seller/emailpass/register`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-publishable-api-key': 'pk_c72299351bae1998e24ec0e9fc6fe27c454752d3c03b69ccf56509e35096a070'
+          'x-publishable-api-key': apiKey,
+          'Accept': 'application/json'
         },
         body: JSON.stringify(payload)
       });
       
+      console.log('Signup response:', response.status, response.statusText);
+      
       if (!response.ok) {
         const errorData = await response.json();
+        console.error('Signup error:', errorData);
         throw new Error(errorData.message || 'Registration failed');
       }
       
-      return response.json();
+      const result = await response.json();
+      console.log('Signup success');
+      return result;
     },
     onSuccess: async (_, variables) => {
       const seller = {
@@ -59,10 +74,16 @@ export const useSignUpWithEmailPass = (
           email: variables.email,
         },
       }
-      await fetchQuery("/vendor/sellers", {
-        method: "POST",
-        body: seller,
-      })
+      
+      try {
+        await fetchQuery("/vendor/sellers", {
+          method: "POST",
+          body: seller,
+        })
+        console.log('Seller created successfully');
+      } catch (error) {
+        console.error('Error creating seller:', error);
+      }
     },
     ...options,
   })
