@@ -71,7 +71,9 @@ export const useSignUpWithEmailPass = (
       console.log('Signup success');
       return result;
     },
-    onSuccess: async (_, variables) => {
+    onSuccess: async (data, variables) => {
+      console.log('Registration successful, creating seller...', { data, variables });
+      
       const seller = {
         name: variables.name,
         member: {
@@ -80,14 +82,28 @@ export const useSignUpWithEmailPass = (
         },
       }
       
+      console.log('Seller payload:', seller);
+      
       try {
-        await fetchQuery("/vendor/sellers", {
+        const result = await fetchQuery("/vendor/sellers", {
           method: "POST",
           body: seller,
         })
-        console.log('Seller created successfully');
+        console.log('Seller created successfully:', result);
+        
+        // Store auth token if returned
+        if (data && typeof data === 'string') {
+          window.localStorage.setItem('medusa_auth_token', data);
+          console.log('Auth token stored');
+        }
       } catch (error) {
-        console.error('Error creating seller:', error);
+        console.error('Error creating seller - Full details:', {
+          error,
+          message: error.message,
+          stack: error.stack,
+          seller
+        });
+        // Don't throw - let registration succeed even if seller creation fails
       }
     },
     ...options,

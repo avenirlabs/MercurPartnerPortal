@@ -267,6 +267,56 @@ export const Register = () => {
               >
                 Test API Connection
               </Button>
+              
+              <Button
+                className="w-full mt-2"
+                variant="secondary"
+                type="button"
+                onClick={async () => {
+                  const testEmail = prompt('Enter email to test login:');
+                  const testPassword = prompt('Enter password:');
+                  
+                  if (!testEmail || !testPassword) return;
+                  
+                  try {
+                    const apiKey = import.meta.env.VITE_PUBLISHABLE_API_KEY || 'pk_c72299351bae1998e24ec0e9fc6fe27c454752d3c03b69ccf56509e35096a070';
+                    const isProduction = window.location.hostname !== 'localhost';
+                    
+                    const apiUrl = isProduction 
+                      ? `/api/proxy?path=/auth/seller/emailpass`
+                      : `${import.meta.env.VITE_MEDUSA_BACKEND_URL || 'https://gmbackend.medusajs.app'}/auth/seller/emailpass`;
+                    
+                    console.log('Testing login for:', testEmail);
+                    
+                    const response = await fetch(apiUrl, {
+                      method: 'POST',
+                      headers: {
+                        'Content-Type': 'application/json',
+                        'x-publishable-api-key': apiKey,
+                        'Accept': 'application/json'
+                      },
+                      body: JSON.stringify({ email: testEmail, password: testPassword })
+                    });
+                    
+                    const data = await response.json();
+                    console.log('Login test response:', response.status, data);
+                    
+                    if (response.ok) {
+                      alert('Login successful! Token: ' + (data.token || data));
+                      if (data.token || typeof data === 'string') {
+                        window.localStorage.setItem('medusa_auth_token', data.token || data);
+                      }
+                    } else {
+                      alert('Login failed: ' + JSON.stringify(data));
+                    }
+                  } catch (error) {
+                    console.error('Login test error:', error);
+                    alert('Login test error: ' + error.message);
+                  }
+                }}
+              >
+                Test Login
+              </Button>
             </form>
           </Form>
         </div>
