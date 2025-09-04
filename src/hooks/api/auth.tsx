@@ -3,6 +3,19 @@ import { HttpTypes } from "@medusajs/types"
 import { UseMutationOptions, useMutation } from "@tanstack/react-query"
 import { fetchQuery, sdk } from "../../lib/client"
 
+// Create a custom FetchError if the import doesn't work
+class CustomFetchError extends Error {
+  status: number
+  body: any
+  
+  constructor(message: string, status: number, body: any) {
+    super(message)
+    this.status = status
+    this.body = body
+    this.name = 'FetchError'
+  }
+}
+
 export const useSignInWithEmailPass = (
   options?: UseMutationOptions<
     | string
@@ -14,7 +27,52 @@ export const useSignInWithEmailPass = (
   >
 ) => {
   return useMutation({
-    mutationFn: (payload) => sdk.auth.login("seller", "emailpass", payload),
+    mutationFn: async (payload) => {
+      const apiKey = import.meta.env.VITE_PUBLISHABLE_API_KEY || 'pk_c72299351bae1998e24ec0e9fc6fe27c454752d3c03b69ccf56509e35096a070';
+      
+      // Use proxy in production to bypass CORS
+      const isProduction = window.location.hostname !== 'localhost';
+      const apiUrl = isProduction 
+        ? `/api/proxy?path=/auth/seller/emailpass`
+        : `${import.meta.env.VITE_MEDUSA_BACKEND_URL || 'https://gmbackend.medusajs.app'}/auth/seller/emailpass`;
+      
+      console.log('Login attempt:', {
+        url: apiUrl,
+        email: payload.email,
+        isProduction
+      });
+      
+      const response = await fetch(apiUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-publishable-api-key': apiKey,
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify(payload)
+      });
+      
+      console.log('Login response:', response.status);
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error('Login error:', errorData);
+        const error = FetchError ? new FetchError(errorData.message || 'Login failed', response.status, errorData) : new CustomFetchError(errorData.message || 'Login failed', response.status, errorData);
+        throw error;
+      }
+      
+      const result = await response.json();
+      console.log('Login success');
+      
+      // Store token if returned
+      if (result && (result.token || typeof result === 'string')) {
+        const token = result.token || result;
+        window.localStorage.setItem('medusa_auth_token', token);
+        console.log('Auth token stored');
+      }
+      
+      return result;
+    },
     onSuccess: async (data, variables, context) => {
       options?.onSuccess?.(data, variables, context)
     },
