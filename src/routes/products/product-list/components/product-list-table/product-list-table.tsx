@@ -23,6 +23,7 @@ import { useProductTableFilters } from "../../../../../hooks/table/filters/use-p
 import { useProductTableQuery } from "../../../../../hooks/table/query/use-product-table-query"
 import { useDataTable } from "../../../../../hooks/use-data-table"
 import { productsLoader } from "../../loader"
+import { AttachFromCatalogButton } from "../../../../../features/catalog-attach"
 
 export const PAGE_SIZE = 5
 
@@ -93,6 +94,7 @@ export const ProductListTable = () => {
           <Button size="small" variant="secondary" asChild>
             <Link to="import">{t("actions.import")}</Link>
           </Button>
+          <AttachFromCatalogButton />
           <Button size="small" variant="secondary" asChild>
             <Link to="create">{t("actions.create")}</Link>
           </Button>
