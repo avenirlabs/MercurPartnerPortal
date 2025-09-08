@@ -11,8 +11,9 @@ export const AttachFromCatalogButton = () => {
   // Get configuration to check if global_product_catalog is enabled
   const { configuration, isLoading } = useConfiguration()
   
-  // Only show button if global_product_catalog is enabled
-  const globalProductCatalogEnabled = configuration?.global_product_catalog === true
+  // TEMPORARY: Force enable button for testing
+  // TODO: Remove this override once backend configuration is properly set
+  const globalProductCatalogEnabled = true // configuration?.global_product_catalog === true
   
   if (isLoading || !globalProductCatalogEnabled) {
     return null

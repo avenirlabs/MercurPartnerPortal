@@ -88,10 +88,14 @@ export const fetchQuery = async (
   
   const response = await fetch(apiUrl, {
     method: method,
+    mode: 'cors',
+    credentials: 'include',
     headers: {
       authorization: `Bearer ${bearer}`,
       "Content-Type": "application/json",
       "x-publishable-api-key": publishableApiKey,
+      "Accept": "application/json",
+      "Origin": window.location.origin,
       ...headers,
     },
     body: body ? JSON.stringify(body) : null,

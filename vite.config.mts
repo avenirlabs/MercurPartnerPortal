@@ -42,13 +42,38 @@ export default defineConfig(({ mode }) => {
     },
     server: {
       open: true,
+      cors: {
+        origin: [
+          'http://localhost:3000',
+          'http://localhost:5173',
+          'http://localhost:5174',
+          'http://127.0.0.1:3000',
+          'http://127.0.0.1:5173',
+          'http://127.0.0.1:5174',
+        ],
+        credentials: true,
+        methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+        allowedHeaders: [
+          'Content-Type',
+          'Authorization',
+          'x-publishable-api-key',
+          'Accept',
+          'Origin',
+          'X-Requested-With'
+        ]
+      },
       headers: {
-        'Content-Security-Policy': "default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: https:; script-src 'self' 'unsafe-inline' 'unsafe-eval' https:; connect-src 'self' https: wss: ws:;"
+        'Content-Security-Policy': "default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: https:; script-src 'self' 'unsafe-inline' 'unsafe-eval' https:; connect-src 'self' https: wss: ws:;",
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, PATCH, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization, x-publishable-api-key, Accept, Origin, X-Requested-With',
+        'Access-Control-Allow-Credentials': 'true'
       },
       proxy: {
         '/api': {
           target: 'https://gmbackend.medusajs.app',
           changeOrigin: true,
+          secure: true,
           rewrite: (path) => path.replace(/^\/api/, ''),
           configure: (proxy, _options) => {
             proxy.on('error', (err, _req, _res) => {
@@ -56,9 +81,17 @@ export default defineConfig(({ mode }) => {
             });
             proxy.on('proxyReq', (proxyReq, req, _res) => {
               console.log('Sending Request to the Target:', req.method, req.url);
+              // Add CORS headers to proxied requests
+              proxyReq.setHeader('Access-Control-Allow-Origin', '*');
+              proxyReq.setHeader('Access-Control-Allow-Credentials', 'true');
             });
             proxy.on('proxyRes', (proxyRes, req, _res) => {
               console.log('Received Response from the Target:', proxyRes.statusCode, req.url);
+              // Add CORS headers to proxied responses
+              proxyRes.headers['Access-Control-Allow-Origin'] = '*';
+              proxyRes.headers['Access-Control-Allow-Credentials'] = 'true';
+              proxyRes.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, PATCH, OPTIONS';
+              proxyRes.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization, x-publishable-api-key, Accept, Origin, X-Requested-With';
             });
           },
         }
